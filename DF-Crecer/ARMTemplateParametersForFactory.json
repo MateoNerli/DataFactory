@@ -1,0 +1,27 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"value": "DF-Crecer"
+		},
+		"Crecer_Database_password": {
+			"value": ""
+		},
+		"Crecer_Dataverse_servicePrincipalCredential": {
+			"value": ""
+		},
+		"Crecer_Database_properties_typeProperties_server": {
+			"value": "replicacion-adf.database.windows.net"
+		},
+		"Crecer_Database_properties_typeProperties_database": {
+			"value": "Crecer"
+		},
+		"Crecer_Database_properties_typeProperties_userName": {
+			"value": "sql-admin-adf"
+		},
+		"Crecer_Dataverse_properties_typeProperties_servicePrincipalId": {
+			"value": "7e4f5684-19c6-4484-9dfc-a84d1ac23be6"
+		}
+	}
+}

@@ -1,0 +1,84 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "DF-Crecer"
+		},
+		"Crecer_Database_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'Crecer_Database'"
+		},
+		"Crecer_Dataverse_servicePrincipalCredential": {
+			"type": "secureString",
+			"metadata": "Secure string for 'servicePrincipalCredential' of 'Crecer_Dataverse'"
+		},
+		"Crecer_Database_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "replicacion-adf.database.windows.net"
+		},
+		"Crecer_Database_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "Crecer"
+		},
+		"Crecer_Database_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "sql-admin-adf"
+		},
+		"Crecer_Dataverse_properties_typeProperties_servicePrincipalId": {
+			"type": "string",
+			"defaultValue": "7e4f5684-19c6-4484-9dfc-a84d1ac23be6"
+		},
+		"containerUri": {
+			"type": "string",
+			"metadata": "URI to storage account containing linked ARM templates"
+		},
+		"containerSasToken": {
+			"type": "string",
+			"metadata": "Sas token to storage account containing linked ARM templates"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "DF-Crecer_ArmTemplate_0",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2024-03-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_0.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					},
+					"Crecer_Database_password": {
+						"value": "[parameters('Crecer_Database_password')]"
+					},
+					"Crecer_Dataverse_servicePrincipalCredential": {
+						"value": "[parameters('Crecer_Dataverse_servicePrincipalCredential')]"
+					},
+					"Crecer_Database_properties_typeProperties_server": {
+						"value": "[parameters('Crecer_Database_properties_typeProperties_server')]"
+					},
+					"Crecer_Database_properties_typeProperties_database": {
+						"value": "[parameters('Crecer_Database_properties_typeProperties_database')]"
+					},
+					"Crecer_Database_properties_typeProperties_userName": {
+						"value": "[parameters('Crecer_Database_properties_typeProperties_userName')]"
+					},
+					"Crecer_Dataverse_properties_typeProperties_servicePrincipalId": {
+						"value": "[parameters('Crecer_Dataverse_properties_typeProperties_servicePrincipalId')]"
+					}
+				}
+			},
+			"dependsOn": []
+		}
+	]
+}

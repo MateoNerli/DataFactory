@@ -1,0 +1,1474 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "DF-Crecer"
+		},
+		"Crecer_Database_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'Crecer_Database'"
+		},
+		"Crecer_Dataverse_servicePrincipalCredential": {
+			"type": "secureString",
+			"metadata": "Secure string for 'servicePrincipalCredential' of 'Crecer_Dataverse'"
+		},
+		"Crecer_Database_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "replicacion-adf.database.windows.net"
+		},
+		"Crecer_Database_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "Crecer"
+		},
+		"Crecer_Database_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "sql-admin-adf"
+		},
+		"Crecer_Dataverse_properties_typeProperties_servicePrincipalId": {
+			"type": "string",
+			"defaultValue": "7e4f5684-19c6-4484-9dfc-a84d1ac23be6"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/Crecer_Database')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"server": "[parameters('Crecer_Database_properties_typeProperties_server')]",
+					"database": "[parameters('Crecer_Database_properties_typeProperties_database')]",
+					"encrypt": "mandatory",
+					"trustServerCertificate": false,
+					"authenticationType": "SQL",
+					"userName": "[parameters('Crecer_Database_properties_typeProperties_userName')]",
+					"password": {
+						"type": "SecureString",
+						"value": "[parameters('Crecer_Database_password')]"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Crecer_Dataverse')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "CommonDataServiceForApps",
+				"typeProperties": {
+					"deploymentType": "Online",
+					"serviceUri": "https://crecersgr.crm2.dynamics.com",
+					"authenticationType": "AADServicePrincipal",
+					"servicePrincipalId": "[parameters('Crecer_Dataverse_properties_typeProperties_servicePrincipalId')]",
+					"servicePrincipalCredential": {
+						"type": "SecureString",
+						"value": "[parameters('Crecer_Dataverse_servicePrincipalCredential')]"
+					},
+					"servicePrincipalCredentialType": "ServicePrincipalKey"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Ejecucion_de_actualizacion_1deLaManana')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Stopped",
+				"pipelines": [],
+				"type": "ScheduleTrigger",
+				"typeProperties": {
+					"recurrence": {
+						"frequency": "Day",
+						"interval": 1,
+						"startTime": "2026-04-02T03:00:00",
+						"timeZone": "Argentina Standard Time"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/trigger')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Stopped",
+				"pipelines": [],
+				"type": "ScheduleTrigger",
+				"typeProperties": {
+					"recurrence": {
+						"frequency": "Hour",
+						"interval": 1,
+						"startTime": "2026-03-12T08:10:00",
+						"timeZone": "Argentina Standard Time"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/trigger1')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Stopped",
+				"pipelines": [],
+				"type": "ScheduleTrigger",
+				"typeProperties": {
+					"recurrence": {
+						"frequency": "Hour",
+						"interval": 1,
+						"startTime": "2026-03-03T18:00:00",
+						"timeZone": "E. South America Standard Time"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_Dataverse_Generic')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "Crecer_Dataverse",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"entity_name": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "CommonDataServiceForAppsEntity",
+				"schema": [],
+				"typeProperties": {
+					"entityName": {
+						"value": "@dataset().entity_name",
+						"type": "Expression"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/Crecer_Dataverse')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_SQL_Generic')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "Crecer_Database",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"pTableName": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"table": {
+						"value": "@dataset().pTableName",
+						"type": "Expression"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/Crecer_Database')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/EntityWatermark')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "Crecer_Database",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "entity_name",
+						"type": "varchar"
+					},
+					{
+						"name": "target_table",
+						"type": "varchar"
+					},
+					{
+						"name": "watermark_column",
+						"type": "varchar"
+					},
+					{
+						"name": "last_watermark",
+						"type": "datetime2",
+						"scale": 7
+					}
+				],
+				"typeProperties": {}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/Crecer_Database')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SincroContingentes_entity')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "EntityWatermark",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": "SELECT * FROM EntityWatermark\nWHERE entity_name IN ('new_contingenteporaporte','new_recuperodecontingenteporaporte')\nAND pipeline_name = 'SincroContingentes'",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"dataset": {
+								"referenceName": "EntityWatermark",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"firstRowOnly": false
+						}
+					},
+					{
+						"name": "ForEach_Entity",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "EntityWatermark",
+								"dependencyConditions": [
+									"Completed"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('EntityWatermark').output.value",
+								"type": "Expression"
+							},
+							"batchCount": 4,
+							"activities": [
+								{
+									"name": "Copy data Entity",
+									"type": "Copy",
+									"dependsOn": [
+										{
+											"activity": "drop_table",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 3,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "CommonDataServiceForAppsSource"
+										},
+										"sink": {
+											"type": "AzureSqlSink",
+											"writeBehavior": "insert",
+											"sqlWriterUseTableLock": false,
+											"tableOption": "autoCreate",
+											"disableMetricsCollection": false
+										},
+										"enableStaging": false,
+										"translator": {
+											"value": "@json(item().column_mappings)",
+											"type": "Expression"
+										}
+									},
+									"inputs": [
+										{
+											"referenceName": "DS_Dataverse_Generic",
+											"type": "DatasetReference",
+											"parameters": {
+												"entity_name": {
+													"value": "@item().entity_name",
+													"type": "Expression"
+												}
+											}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "DS_SQL_Generic",
+											"type": "DatasetReference",
+											"parameters": {
+												"pTableName": {
+													"value": "@{item().target_table}",
+													"type": "Expression"
+												}
+											}
+										}
+									]
+								},
+								{
+									"name": "sp_update_watermark",
+									"type": "SqlServerStoredProcedure",
+									"dependsOn": [
+										{
+											"activity": "ensure_index",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"storedProcedureName": "[[dbo].[sp_update_watermark]",
+										"storedProcedureParameters": {
+											"entity_name": {
+												"value": {
+													"value": "@item().entity_name",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"last_watermark": {
+												"value": {
+													"value": "@formatDateTime(addMinutes(utcNow(), -5), 'yyyy-MM-ddTHH:mm:ssZ')",
+													"type": "Expression"
+												},
+												"type": "DateTime"
+											},
+											"registros_leidos": {
+												"value": {
+													"value": "@activity('Copy data Entity').output.rowsCopied",
+													"type": "Expression"
+												},
+												"type": "Int32"
+											},
+											"tabla": {
+												"value": {
+													"value": "@item().target_table",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"pipeline_name": {
+												"value": "SincroContingentes",
+												"type": "String"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "Crecer_Database",
+										"type": "LinkedServiceReference"
+									}
+								},
+								{
+									"name": "Log_Error",
+									"type": "SqlServerStoredProcedure",
+									"dependsOn": [
+										{
+											"activity": "Copy data Entity",
+											"dependencyConditions": [
+												"Failed"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"storedProcedureName": "[[dbo].[sp_log_error]",
+										"storedProcedureParameters": {
+											"Actividad": {
+												"value": "Copy Dataverse",
+												"type": "String"
+											},
+											"ActivityRunId": {
+												"value": {
+													"value": "@activity('Copy data Entity').ActivityRunId",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"EntityName": {
+												"value": {
+													"value": "@item().entity_name",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"MensajeError": {
+												"value": {
+													"value": "@string(activity('Copy data Entity').output.errors)",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"PipelineRunId": {
+												"value": {
+													"value": "@pipeline().RunId",
+													"type": "Expression"
+												},
+												"type": "String"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "Crecer_Database",
+										"type": "LinkedServiceReference"
+									}
+								},
+								{
+									"name": "drop_table",
+									"type": "SqlServerStoredProcedure",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"storedProcedureName": "[[dbo].[sp_drop_table]",
+										"storedProcedureParameters": {
+											"table_name": {
+												"value": {
+													"value": "@item().entity_name",
+													"type": "Expression"
+												},
+												"type": "String"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "Crecer_Database",
+										"type": "LinkedServiceReference"
+									}
+								},
+								{
+									"name": "ensure_index",
+									"type": "SqlServerStoredProcedure",
+									"dependsOn": [
+										{
+											"activity": "Copy data Entity",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"storedProcedureName": "[[dbo].[sp_ensure_pk_index]",
+										"storedProcedureParameters": {
+											"pk_column": {
+												"value": {
+													"value": "@concat(item().entity_name, 'id')",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"table_name": {
+												"value": {
+													"value": "@item().target_table",
+													"type": "Expression"
+												},
+												"type": "String"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "Crecer_Database",
+										"type": "LinkedServiceReference"
+									}
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2026-08-14T17:07:50Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/EntityWatermark')]",
+				"[concat(variables('factoryId'), '/datasets/DS_Dataverse_Generic')]",
+				"[concat(variables('factoryId'), '/datasets/DS_SQL_Generic')]",
+				"[concat(variables('factoryId'), '/linkedServices/Crecer_Database')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SincroCuotaParteHistorica_entity')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "EntityWatermark",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": "SELECT * FROM EntityWatermark\nWHERE pipeline_name = 'SincroCuotaParteHistorica'",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"dataset": {
+								"referenceName": "EntityWatermark",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"firstRowOnly": false
+						}
+					},
+					{
+						"name": "ForEach_Entity",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "EntityWatermark",
+								"dependencyConditions": [
+									"Completed"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('EntityWatermark').output.value",
+								"type": "Expression"
+							},
+							"batchCount": 4,
+							"activities": [
+								{
+									"name": "Copy data Entity",
+									"type": "Copy",
+									"dependsOn": [
+										{
+											"activity": "drop_table",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 3,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "CommonDataServiceForAppsSource"
+										},
+										"sink": {
+											"type": "AzureSqlSink",
+											"writeBehavior": "insert",
+											"sqlWriterUseTableLock": false,
+											"tableOption": "autoCreate",
+											"disableMetricsCollection": false
+										},
+										"enableStaging": false,
+										"translator": {
+											"value": "@json(item().column_mappings)",
+											"type": "Expression"
+										}
+									},
+									"inputs": [
+										{
+											"referenceName": "DS_Dataverse_Generic",
+											"type": "DatasetReference",
+											"parameters": {
+												"entity_name": {
+													"value": "@item().entity_name",
+													"type": "Expression"
+												}
+											}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "DS_SQL_Generic",
+											"type": "DatasetReference",
+											"parameters": {
+												"pTableName": {
+													"value": "@{item().target_table}",
+													"type": "Expression"
+												}
+											}
+										}
+									]
+								},
+								{
+									"name": "sp_update_watermark",
+									"type": "SqlServerStoredProcedure",
+									"dependsOn": [
+										{
+											"activity": "ensure_index",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"storedProcedureName": "[[dbo].[sp_update_watermark]",
+										"storedProcedureParameters": {
+											"entity_name": {
+												"value": {
+													"value": "@item().entity_name",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"last_watermark": {
+												"value": {
+													"value": "@formatDateTime(addMinutes(utcNow(), -5), 'yyyy-MM-ddTHH:mm:ssZ')",
+													"type": "Expression"
+												},
+												"type": "DateTime"
+											},
+											"registros_leidos": {
+												"value": {
+													"value": "@activity('Copy data Entity').output.rowsCopied",
+													"type": "Expression"
+												},
+												"type": "Int32"
+											},
+											"tabla": {
+												"value": {
+													"value": "@item().target_table",
+													"type": "Expression"
+												},
+												"type": "String"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "Crecer_Database",
+										"type": "LinkedServiceReference"
+									}
+								},
+								{
+									"name": "Log_Error",
+									"type": "SqlServerStoredProcedure",
+									"dependsOn": [
+										{
+											"activity": "Copy data Entity",
+											"dependencyConditions": [
+												"Failed"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"storedProcedureName": "[[dbo].[sp_log_error]",
+										"storedProcedureParameters": {
+											"Actividad": {
+												"value": "Copy Dataverse",
+												"type": "String"
+											},
+											"ActivityRunId": {
+												"value": {
+													"value": "@activity('Copy data Entity').ActivityRunId",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"EntityName": {
+												"value": {
+													"value": "@item().entity_name",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"MensajeError": {
+												"value": {
+													"value": "@string(activity('Copy data Entity').output.errors)",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"PipelineRunId": {
+												"value": {
+													"value": "@pipeline().RunId",
+													"type": "Expression"
+												},
+												"type": "String"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "Crecer_Database",
+										"type": "LinkedServiceReference"
+									}
+								},
+								{
+									"name": "drop_table",
+									"type": "SqlServerStoredProcedure",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"storedProcedureName": "[[dbo].[sp_drop_table]",
+										"storedProcedureParameters": {
+											"table_name": {
+												"value": {
+													"value": "@item().entity_name",
+													"type": "Expression"
+												},
+												"type": "String"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "Crecer_Database",
+										"type": "LinkedServiceReference"
+									}
+								},
+								{
+									"name": "ensure_index",
+									"type": "SqlServerStoredProcedure",
+									"dependsOn": [
+										{
+											"activity": "Copy data Entity",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"storedProcedureName": "[[dbo].[sp_ensure_pk_index]",
+										"storedProcedureParameters": {
+											"pk_column": {
+												"value": {
+													"value": "@concat(item().entity_name, 'id')",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"table_name": {
+												"value": {
+													"value": "@item().target_table",
+													"type": "Expression"
+												},
+												"type": "String"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "Crecer_Database",
+										"type": "LinkedServiceReference"
+									}
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2026-08-14T17:07:51Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/EntityWatermark')]",
+				"[concat(variables('factoryId'), '/datasets/DS_Dataverse_Generic')]",
+				"[concat(variables('factoryId'), '/datasets/DS_SQL_Generic')]",
+				"[concat(variables('factoryId'), '/linkedServices/Crecer_Database')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SincroIncremental_entity')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "EntityWatermark",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": "SELECT * FROM EntityWatermark\nWHERE pipeline_name = 'SincroIncremental'\n",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"dataset": {
+								"referenceName": "EntityWatermark",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"firstRowOnly": false
+						}
+					},
+					{
+						"name": "ForEach_Entity",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "EntityWatermark",
+								"dependencyConditions": [
+									"Completed"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('EntityWatermark').output.value",
+								"type": "Expression"
+							},
+							"batchCount": 4,
+							"activities": [
+								{
+									"name": "Copy data Entity",
+									"type": "Copy",
+									"dependsOn": [
+										{
+											"activity": "drop_table",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 2,
+										"retryIntervalInSeconds": 300,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "CommonDataServiceForAppsSource"
+										},
+										"sink": {
+											"type": "AzureSqlSink",
+											"writeBatchSize": 500,
+											"writeBehavior": "insert",
+											"sqlWriterUseTableLock": false,
+											"tableOption": "autoCreate",
+											"disableMetricsCollection": false
+										},
+										"enableStaging": false,
+										"translator": {
+											"value": "@json(item().column_mappings)",
+											"type": "Expression"
+										}
+									},
+									"inputs": [
+										{
+											"referenceName": "DS_Dataverse_Generic",
+											"type": "DatasetReference",
+											"parameters": {
+												"entity_name": {
+													"value": "@item().entity_name",
+													"type": "Expression"
+												}
+											}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "DS_SQL_Generic",
+											"type": "DatasetReference",
+											"parameters": {
+												"pTableName": {
+													"value": "@{item().target_table}",
+													"type": "Expression"
+												}
+											}
+										}
+									]
+								},
+								{
+									"name": "sp_update_watermark",
+									"type": "SqlServerStoredProcedure",
+									"dependsOn": [
+										{
+											"activity": "ensure_index",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"storedProcedureName": "[[dbo].[sp_update_watermark]",
+										"storedProcedureParameters": {
+											"entity_name": {
+												"value": {
+													"value": "@item().entity_name",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"last_watermark": {
+												"value": {
+													"value": "@formatDateTime(addMinutes(utcNow(), -5), 'yyyy-MM-ddTHH:mm:ssZ')",
+													"type": "Expression"
+												},
+												"type": "DateTime"
+											},
+											"registros_leidos": {
+												"value": {
+													"value": "@activity('Copy data Entity').output.rowsCopied",
+													"type": "Expression"
+												},
+												"type": "Int32"
+											},
+											"tabla": {
+												"value": {
+													"value": "@item().target_table",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"pipeline_name": {
+												"value": "SincroIncremental",
+												"type": "String"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "Crecer_Database",
+										"type": "LinkedServiceReference"
+									}
+								},
+								{
+									"name": "Log_Error",
+									"type": "SqlServerStoredProcedure",
+									"dependsOn": [
+										{
+											"activity": "Copy data Entity",
+											"dependencyConditions": [
+												"Failed"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"storedProcedureName": "[[dbo].[sp_log_error]",
+										"storedProcedureParameters": {
+											"Actividad": {
+												"value": "Copy Dataverse",
+												"type": "String"
+											},
+											"ActivityRunId": {
+												"value": {
+													"value": "@activity('Copy data Entity').ActivityRunId",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"EntityName": {
+												"value": {
+													"value": "@item().entity_name",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"MensajeError": {
+												"value": {
+													"value": "@string(activity('Copy data Entity').output.errors)",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"PipelineRunId": {
+												"value": {
+													"value": "@pipeline().RunId",
+													"type": "Expression"
+												},
+												"type": "String"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "Crecer_Database",
+										"type": "LinkedServiceReference"
+									}
+								},
+								{
+									"name": "drop_table",
+									"type": "SqlServerStoredProcedure",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"storedProcedureName": "[[dbo].[sp_drop_table]",
+										"storedProcedureParameters": {
+											"table_name": {
+												"value": {
+													"value": "@item().entity_name",
+													"type": "Expression"
+												},
+												"type": "String"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "Crecer_Database",
+										"type": "LinkedServiceReference"
+									}
+								},
+								{
+									"name": "ensure_index",
+									"type": "SqlServerStoredProcedure",
+									"dependsOn": [
+										{
+											"activity": "Copy data Entity",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"storedProcedureName": "[[dbo].[sp_ensure_pk_index]",
+										"storedProcedureParameters": {
+											"pk_column": {
+												"value": {
+													"value": "@concat(item().entity_name, 'id')",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"table_name": {
+												"value": {
+													"value": "@item().target_table",
+													"type": "Expression"
+												},
+												"type": "String"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "Crecer_Database",
+										"type": "LinkedServiceReference"
+									}
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2026-08-14T17:07:50Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/EntityWatermark')]",
+				"[concat(variables('factoryId'), '/datasets/DS_Dataverse_Generic')]",
+				"[concat(variables('factoryId'), '/datasets/DS_SQL_Generic')]",
+				"[concat(variables('factoryId'), '/linkedServices/Crecer_Database')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SincroInicial')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "EntityWatermark",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": "SELECT * FROM EntityWatermark\nWHERE pipeline_name = 'SincroIncremental'",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"dataset": {
+								"referenceName": "EntityWatermark",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"firstRowOnly": false
+						}
+					},
+					{
+						"name": "ForEach_Entity",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "EntityWatermark",
+								"dependencyConditions": [
+									"Completed"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('EntityWatermark').output.value",
+								"type": "Expression"
+							},
+							"batchCount": 4,
+							"activities": [
+								{
+									"name": "Copy data Entity",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 3,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "CommonDataServiceForAppsSource"
+										},
+										"sink": {
+											"type": "AzureSqlSink",
+											"writeBehavior": "insert",
+											"sqlWriterUseTableLock": false,
+											"tableOption": "autoCreate",
+											"disableMetricsCollection": false
+										},
+										"enableStaging": false
+									},
+									"inputs": [
+										{
+											"referenceName": "DS_Dataverse_Generic",
+											"type": "DatasetReference",
+											"parameters": {
+												"entity_name": {
+													"value": "@item().entity_name",
+													"type": "Expression"
+												}
+											}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "DS_SQL_Generic",
+											"type": "DatasetReference",
+											"parameters": {
+												"pTableName": {
+													"value": "@item().target_table",
+													"type": "Expression"
+												}
+											}
+										}
+									]
+								},
+								{
+									"name": "sp_update_watermark",
+									"type": "SqlServerStoredProcedure",
+									"dependsOn": [
+										{
+											"activity": "ensure_index",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"storedProcedureName": "[[dbo].[sp_update_watermark]",
+										"storedProcedureParameters": {
+											"entity_name": {
+												"value": {
+													"value": "@item().entity_name",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"last_watermark": {
+												"value": {
+													"value": "@utcNow()",
+													"type": "Expression"
+												},
+												"type": "DateTime"
+											},
+											"tabla": {
+												"value": "EntityOperacionesPasadaWatermark",
+												"type": "String"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "Crecer_Database",
+										"type": "LinkedServiceReference"
+									}
+								},
+								{
+									"name": "Log_Error",
+									"type": "SqlServerStoredProcedure",
+									"dependsOn": [
+										{
+											"activity": "Copy data Entity",
+											"dependencyConditions": [
+												"Failed"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"storedProcedureName": "[[dbo].[sp_log_error]",
+										"storedProcedureParameters": {
+											"Actividad": {
+												"value": "Copy Dataverse",
+												"type": "String"
+											},
+											"ActivityRunId": {
+												"value": {
+													"value": "@activity('Copy data Entity').ActivityRunId",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"EntityName": {
+												"value": {
+													"value": "@item().entity_name",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"MensajeError": {
+												"value": {
+													"value": "@string(activity('Copy data Entity').output.errors)",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"PipelineRunId": {
+												"value": {
+													"value": "@pipeline().RunId",
+													"type": "Expression"
+												},
+												"type": "String"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "Crecer_Database",
+										"type": "LinkedServiceReference"
+									}
+								},
+								{
+									"name": "ensure_index",
+									"type": "SqlServerStoredProcedure",
+									"dependsOn": [
+										{
+											"activity": "Copy data Entity",
+											"dependencyConditions": [
+												"Completed"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"storedProcedureName": "[[dbo].[sp_ensure_pk_index]",
+										"storedProcedureParameters": {
+											"pk_column": {
+												"value": {
+													"value": "@concat(item().entity_name, 'id')",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"table_name": {
+												"value": {
+													"value": "@item().target_table",
+													"type": "Expression"
+												},
+												"type": "String"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "Crecer_Database",
+										"type": "LinkedServiceReference"
+									}
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2026-08-14T17:07:50Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/EntityWatermark')]",
+				"[concat(variables('factoryId'), '/datasets/DS_Dataverse_Generic')]",
+				"[concat(variables('factoryId'), '/datasets/DS_SQL_Generic')]",
+				"[concat(variables('factoryId'), '/linkedServices/Crecer_Database')]"
+			]
+		}
+	]
+}
