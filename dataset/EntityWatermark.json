@@ -1,0 +1,31 @@
+{
+	"name": "EntityWatermark",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "Crecer_Database",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "entity_name",
+				"type": "varchar"
+			},
+			{
+				"name": "target_table",
+				"type": "varchar"
+			},
+			{
+				"name": "watermark_column",
+				"type": "varchar"
+			},
+			{
+				"name": "last_watermark",
+				"type": "datetime2",
+				"scale": 7
+			}
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

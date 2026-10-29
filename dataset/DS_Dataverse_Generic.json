@@ -1,0 +1,24 @@
+{
+	"name": "DS_Dataverse_Generic",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "Crecer_Dataverse",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"entity_name": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "CommonDataServiceForAppsEntity",
+		"schema": [],
+		"typeProperties": {
+			"entityName": {
+				"value": "@dataset().entity_name",
+				"type": "Expression"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

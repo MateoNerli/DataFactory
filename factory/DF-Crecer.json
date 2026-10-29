@@ -1,0 +1,15 @@
+{
+	"name": "DF-Crecer",
+	"properties": {
+		"trustModeClaimForMi": {
+			"value": "Disabled",
+			"editable": true
+		}
+	},
+	"location": "eastus",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "18014545-dd57-48de-a12d-6a965927c103",
+		"tenantId": "2af24f2a-8e95-4fd3-8132-009319b1d742"
+	}
+}
